@@ -12,11 +12,10 @@ struct AppHeaderView: View {
         
         HStack {
             
-            // LOGO + TITLE
             HStack(spacing: 10) {
                 
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(.secondarySystemBackground)) // ✅ adaptive
+                    .fill(Color(.secondarySystemBackground))
                     .frame(width: 35, height: 35)
                     .overlay(
                         Text("P")
@@ -33,11 +32,11 @@ struct AppHeaderView: View {
             
             HStack(spacing: 18) {
                 
-                // 🔔 NOTIFICATIONS (Menu)
                 Menu {
                     
                     if vm.notifications.isEmpty {
                         Label("No notifications", systemImage: "bell.slash")
+                            .foregroundStyle(.primary)
                     } else {
                         
                         ForEach(vm.notifications.prefix(3), id: \.self) { note in
@@ -56,11 +55,11 @@ struct AppHeaderView: View {
                 } label: {
                     ZStack {
                         Image(systemName: "bell")
-                            .foregroundStyle(.primary)
+                            .foregroundColor(.primary)
                         
                         if !vm.notifications.isEmpty {
                             Circle()
-                                .fill(Color.red) // ✅ keep red (system alert color)
+                                .fill(Color.red)
                                 .frame(width: 8, height: 8)
                                 .offset(x: 6, y: -6)
                         }
@@ -71,12 +70,12 @@ struct AppHeaderView: View {
                 if showFilter, let onFilterTap {
                     Button(action: onFilterTap) {
                         Image(systemName: "line.3.horizontal.decrease.circle")
-                            .foregroundStyle(.primary)
+                            .foregroundColor(.primary)
                     }
                 }
             }
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 1)
         .padding(.vertical, 8)
         .background(
             Color(.systemBackground)

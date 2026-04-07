@@ -7,6 +7,9 @@ struct BalanceView: View {
     @StateObject private var vm = TransactionViewModel()
     @State private var showAddSheet = false
     
+    @State private var selectedPeriod = 0
+    @State private var currentDate = Date()
+    
     var body: some View {
         
         ZStack {
@@ -18,7 +21,6 @@ struct BalanceView: View {
                 
                 AppHeaderView {}
                     .padding(.horizontal)
-                    .padding(.top, 8)
                 
                 ScrollView(showsIndicators: false) {
                     
@@ -26,9 +28,7 @@ struct BalanceView: View {
                         
                         header
                         
-                        creditScoreView
-                        
-                        currencyCard
+                        expenseGaugeView
                         
                         chartSection
                     }
@@ -37,25 +37,8 @@ struct BalanceView: View {
                 }
             }
             
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    
-                    Button {
-                        showAddSheet = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.title2.bold())
-                            .foregroundColor(.black)
-                            .frame(width: 60, height: 60)
-                            .background(Color.primary)
-                            .clipShape(Circle())
-                            .shadow(radius: 10)
-                    }
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 30)
-                }
+            FloatingActionButton {
+                showAddSheet = true
             }
         }
         .sheet(isPresented: $showAddSheet) {
@@ -73,343 +56,342 @@ struct BalanceView: View {
 
 extension BalanceView {
     
-    // MARK: - Header
     var header: some View {
         VStack(alignment: .leading, spacing: 6) {
-            
             Text("Your Balances")
                 .font(.title.bold())
-                .foregroundStyle(.primary)
             
-            Text("Manage your multi-currency accounts")
+            Text("Track your spending insights")
                 .foregroundStyle(.secondary)
         }
-        .padding(.top, 10)
+        .padding(.top, 15)
     }
     
-    // MARK: - Credit Score
-    var creditScoreView: some View {
+    // MARK: - TOP GAUGE
+    
+    var expenseGaugeView: some View {
         
-        let score: Double = 660
-        let maxScore: Double = 850
-        let progress = score / maxScore
-        
-        return VStack(spacing: 12) {
+        VStack(spacing: 16) {
+            
+            HStack {
+                
+                Button {
+                    changeDate(by: -1)
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                
+                Spacer()
+                
+                Text(formattedDate)
+                    .font(.headline)
+                
+                Spacer()
+                
+                Button {
+                    changeDate(by: 1)
+                } label: {
+                    Image(systemName: "chevron.right")
+                }
+            }
+            
+            Picker("", selection: $selectedPeriod) {
+                Text("Daily").tag(0)
+                Text("Weekly").tag(1)
+                Text("Monthly").tag(2)
+            }
+            .pickerStyle(.segmented)
             
             ZStack(alignment: .bottom) {
                 
-                // MARK: - ARC SYSTEM
-                ZStack {
-                    GaugeSegments()
-                    GaugeDots()
-                    GaugeIndicator(progress: progress)
-                }
-                .frame(width: 260, height: 160)
+                DynamicGaugeSegments(values: segments)
+                    .frame(width: 260, height: 160)
                 
-                // MARK: - CENTER TEXT (ANCHORED)
                 VStack(spacing: 6) {
+                    Text("₹\(Int(totalExpense))")
+                        .font(.title.bold())
                     
-                    Text("660")
-                        .font(.system(size: 42, weight: .bold))
-                    
-                    Text("Your Credit Score is average")
+                    Text("Total Spend")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    
-                    Text("Last Check on 21 Apr")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 4)
                 }
                 .offset(y: 20)
             }
         }
-        .frame(maxWidth: .infinity)
     }
     
-    struct GaugeIndicator: View {
-        
-        var progress: Double
-        
-        let startAngle: Double = 180
-        let totalAngle: Double = 180
-        
-        var body: some View {
-            
-            GeometryReader { geo in
-                
-                let size = geo.size
-                let radius = size.width / 2 - 20
-                let center = CGPoint(x: size.width / 2, y: size.height)
-                
-                let angle = (startAngle + progress * totalAngle) * .pi / 180
-                
-                let x = center.x + radius * cos(angle)
-                let y = center.y + radius * sin(angle)
-                
-                ZStack {
-                    
-                    Circle()
-                        .fill(Color.blue.opacity(0.25))
-                        .frame(width: 26, height: 26)
-                        .blur(radius: 6)
-                    
-                    Circle()
-                        .fill(Color.blue)
-                        .frame(width: 16, height: 16)
-                    
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 6, height: 6)
-                }
-                .position(x: x, y: y)
-            }
-        }
-    }
-    
-    struct GaugeSegments: View {
-        
-        let segments: [[Color]] = [
-            [.green, .mint],
-            [.purple, .pink],
-            [.blue, .cyan],
-            [.orange, .red]
-        ]
-        
-        let startAngle: Double = 180
-        let totalAngle: Double = 180
-        let spacing: Double = 8
-        
-        var body: some View {
-            
-            let segmentAngle = (totalAngle - spacing * 3) / 4
-            
-            ZStack {
-                ForEach(0..<4) { i in
-                    
-                    let start = startAngle + Double(i) * (segmentAngle + spacing)
-                    let end = start + segmentAngle
-                    
-                    ArcShape(startAngle: start, endAngle: end)
-                        .stroke(
-                            LinearGradient(
-                                colors: segments[i],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ),
-                            style: StrokeStyle(
-                                lineWidth: 16,
-                                lineCap: .round
-                            )
-                        )
-                }
-            }
-        }
-    }
-    
-    struct GaugeDots: View {
-        
-        let startAngle: Double = 180
-        let totalAngle: Double = 180
-        
-        var body: some View {
-            
-            GeometryReader { geo in
-                
-                let size = geo.size
-                let radius = size.width / 2 - 20
-                let center = CGPoint(x: size.width / 2, y: size.height)
-                
-                ZStack {
-                    ForEach(0..<30) { i in
-                        
-                        let progress = Double(i) / 30
-                        let angle = (startAngle + progress * totalAngle) * .pi / 180
-                        
-                        let x = center.x + radius * cos(angle)
-                        let y = center.y + radius * sin(angle)
-                        
-                        Circle()
-                            .fill(Color.primary.opacity(0.25))
-                            .frame(width: 3, height: 3)
-                            .position(x: x, y: y)
-                    }
-                }
-            }
-        }
-    }
-    
-    struct SegmentedGauge: View {
-        
-        let colors: [Color] = [.green, .pink, .blue, .yellow]
-        
-        let totalAngle: Double = 220
-        let startAngle: Double = -110
-        let spacing: Double = 6
-        
-        var body: some View {
-            
-            let segmentAngle = (totalAngle - spacing * Double(colors.count - 1)) / Double(colors.count)
-            
-            ZStack {
-                ForEach(colors.indices, id: \.self) { i in
-                    
-                    let start = startAngle + Double(i) * (segmentAngle + spacing)
-                    let end = start + segmentAngle
-                    
-                    ArcShape(startAngle: start, endAngle: end)
-                        .stroke(
-                            colors[i],
-                            style: StrokeStyle(
-                                lineWidth: 18,
-                                lineCap: .round
-                            )
-                        )
-                }
-            }
-        }
-    }
-    
-    struct ArcShape: Shape {
-        
-        var startAngle: Double
-        var endAngle: Double
-        
-        func path(in rect: CGRect) -> Path {
-            
-            var path = Path()
-            
-            let center = CGPoint(
-                x: rect.midX,
-                y: rect.maxY
-            )
-            
-            let radius = rect.width / 2
-            
-            path.addArc(
-                center: center,
-                radius: radius,
-                startAngle: .degrees(startAngle),
-                endAngle: .degrees(endAngle),
-                clockwise: false
-            )
-            
-            return path
-        }
-    }
-    
-    // MARK: - Currency Card
-    var currencyCard: some View {
-        
-        HStack {
-            
-            VStack(alignment: .leading, spacing: 4) {
-                
-                Text("CAD")
-                    .font(.headline)
-                
-                Text("Canadian Dollar")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Spacer()
-            
-            Button {
-                
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus")
-                    Text("Enable")
-                }
-                .font(.subheadline.weight(.medium))
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(.ultraThinMaterial)
-                .clipShape(Capsule())
-            }
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
-        )
-    }
-    
-    // MARK: - Chart
+    // MARK: - BREAKDOWN
     
     var chartSection: some View {
         
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             
-            Chart(chartData) { item in
+            Text("Spending Breakdown")
+                .font(.headline)
+            
+            VStack(spacing: 12) {
                 
-                BarMark(
-                    x: .value("Day", item.day),
-                    y: .value("Amount", item.amount)
+                ForEach(categoryTotals, id: \.category) { item in
+                    
+                    HStack {
+                        Text(item.category)
+                        
+                        Spacer()
+                        
+                        Text("₹\(Int(item.amount))")
+                            .font(.subheadline.bold())
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(.secondarySystemBackground))
+                    )
+                }
+            }
+        }
+    }
+}
+
+extension BalanceView {
+    
+    var expenseTransactions: [Transaction] {
+        vm.transactions.filter { !$0.isIncome }
+    }
+    
+    var filteredTransactions: [Transaction] {
+        
+        let calendar = Calendar.current
+        
+        return vm.transactions.filter { transaction in
+            
+            switch selectedPeriod {
+                
+            case 0: // Daily
+                return calendar.isDate(transaction.date, inSameDayAs: currentDate)
+                
+            case 1: // Weekly
+                return calendar.isDate(transaction.date, equalTo: currentDate, toGranularity: .weekOfYear)
+                
+            default: // Monthly
+                return calendar.isDate(transaction.date, equalTo: currentDate, toGranularity: .month)
+            }
+        }
+    }
+    
+    var categoryTotals: [(category: String, amount: Double)] {
+        
+        let grouped = Dictionary(grouping: filteredTransactions) { $0.category }
+        
+        return allCategories.map { category in
+            
+            let total = grouped[category]?.reduce(0) { $0 + $1.amount } ?? 0
+            
+            return (category, total)
+        }
+        .sorted { $0.amount > $1.amount }
+    }
+    
+    var topCategories: [(String, Double)] {
+        Array(categoryTotals.prefix(3))
+    }
+    
+    var othersTotal: Double {
+        categoryTotals.dropFirst(3).reduce(0) { $0 + $1.amount }
+    }
+    
+    var totalExpense: Double {
+        categoryTotals.reduce(0) { $0 + $1.amount }
+    }
+    
+    var segments: [Double] {
+        
+        guard totalExpense > 0 else { return [] }
+        
+        let top = categoryTotals.prefix(3).map { $0.amount }
+        let others = categoryTotals.dropFirst(3).reduce(0) { $0 + $1.amount }
+        
+        var raw = top
+        
+        if others > 0 {
+            raw.append(others)
+        }
+        
+        let normalized = raw.map { $0 / totalExpense }
+        
+        let minValue: Double = 0.05
+        
+        let adjusted = normalized.map { max($0, minValue) }
+        
+        let total = adjusted.reduce(0, +)
+        
+        return adjusted.map { $0 / total }
+    }
+}
+
+extension BalanceView {
+    
+    var dateHeader: String {
+        
+        let calendar = Calendar.current
+        let now = Date()
+        let formatter = DateFormatter()
+        
+        switch selectedPeriod {
+            
+        case 0:
+            formatter.dateFormat = "d MMM yyyy"
+            return formatter.string(from: now)
+            
+        case 1:
+            let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: now)?.start ?? now
+            let endOfWeek = calendar.date(byAdding: .day, value: 6, to: startOfWeek) ?? now
+            
+            formatter.dateFormat = "d MMM"
+            return "\(formatter.string(from: startOfWeek)) - \(formatter.string(from: endOfWeek))"
+            
+        default:
+            formatter.dateFormat = "MMMM yyyy"
+            return formatter.string(from: now)
+        }
+    }
+    
+    func changeDate(by value: Int) {
+        
+        let calendar = Calendar.current
+        
+        switch selectedPeriod {
+            
+        case 0: // Daily
+            currentDate = calendar.date(byAdding: .day, value: value, to: currentDate) ?? currentDate
+            
+        case 1: // Weekly
+            currentDate = calendar.date(byAdding: .weekOfYear, value: value, to: currentDate) ?? currentDate
+            
+        default: // Monthly
+            currentDate = calendar.date(byAdding: .month, value: value, to: currentDate) ?? currentDate
+        }
+    }
+    
+    var formattedDate: String {
+        
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        
+        switch selectedPeriod {
+            
+        case 0: // DAILY
+            formatter.dateFormat = "d MMM yyyy"
+            return formatter.string(from: currentDate)
+            
+        case 1: // WEEKLY
+            
+            let interval = calendar.dateInterval(of: .weekOfYear, for: currentDate)
+            let start = interval?.start ?? currentDate
+            let end = calendar.date(byAdding: .day, value: 6, to: start) ?? currentDate
+            
+            formatter.dateFormat = "d MMM"
+            
+            return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
+            
+        default: // MONTHLY
+            
+            formatter.dateFormat = "MMMM yyyy"
+            return formatter.string(from: currentDate)
+        }
+    }
+}
+
+struct DynamicGaugeSegments: View {
+    
+    let values: [Double]
+    
+    @State private var progress: Double = 0
+    
+    let colors: [[Color]] = [
+        [.purple, .pink],
+        [.blue, .cyan],
+        [.green, .mint],
+        [.orange, .red]
+    ]
+    
+    let totalAngle: Double = 180
+    let startAngle: Double = 180
+    let gap: Double = 9
+    
+    var body: some View {
+        
+        let totalGap = gap * Double(max(values.count - 1, 0))
+        let usableAngle = totalAngle - totalGap
+        
+        let angles = values.map { $0 * usableAngle }
+        
+        ZStack {
+            
+            ForEach(angles.indices, id: \.self) { i in
+                
+                let fullStart = startAngle
+                    + angles.prefix(i).reduce(0, +)
+                    + Double(i) * gap
+                
+                let fullEnd = fullStart + angles[i]
+                
+                // 👇 Animate END angle only
+                let animatedEnd = fullStart + (fullEnd - fullStart) * progress
+                
+                ArcShape(
+                    startAngle: fullStart,
+                    endAngle: animatedEnd
                 )
-                .cornerRadius(8)
-                .foregroundStyle(
+                .stroke(
                     LinearGradient(
-                        colors: [.green, .blue],
-                        startPoint: .bottom,
-                        endPoint: .top
+                        colors: colors[min(i, colors.count - 1)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    style: StrokeStyle(
+                        lineWidth: 18,
+                        lineCap: .round
                     )
                 )
             }
-            .frame(height: 220)
-            
-            HStack {
-                Text("Current margin: April Spendings")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                
-                Spacer()
-                
-                Text("₹\(totalExpenses) / ₹\(totalIncome)")
-                    .font(.caption.bold())
-                    .foregroundStyle(.primary)
-            }
+        }
+        .onAppear {
+            animate()
+        }
+        .onChange(of: values) { _, _ in
+            animate()
         }
     }
     
-    // MARK: - Data
-    var chartData: [ChartData] {
+    func animate() {
+        progress = 0
         
-        let grouped = Dictionary(grouping: vm.transactions) { transaction in
-            let formatter = DateFormatter()
-            formatter.dateFormat = "E"
-            return formatter.string(from: transaction.date)
+        withAnimation(.easeOut(duration: 1.2)) {
+            progress = 1
         }
-        
-        return grouped.map { (day, transactions) in
-            let total = transactions.reduce(0) { $0 + $1.amount }
-            return ChartData(day: day, amount: total)
-        }
-        .sorted { $0.day < $1.day }
     }
+}
+
+struct ArcShape: Shape {
     
-    var totalExpenses: Int {
-        Int(vm.transactions.filter { !$0.isIncome }
-            .reduce(0) { $0 + $1.amount })
-    }
-
-    var totalIncome: Int {
-        Int(vm.transactions.filter { $0.isIncome }
-            .reduce(0) { $0 + $1.amount })
-    }
-
-    func arcSegment(color: Color, start: CGFloat, end: CGFloat) -> some View {
+    var startAngle: Double
+    var endAngle: Double
+    
+    func path(in rect: CGRect) -> Path {
         
-        Circle()
-            .trim(from: start * 0.75, to: end * 0.75)
-            .stroke(
-                color,
-                style: StrokeStyle(
-                    lineWidth: 18,
-                    lineCap: .round
-                )
-            )
-            .rotationEffect(.degrees(135))
+        var path = Path()
+        
+        let center = CGPoint(x: rect.midX, y: rect.maxY)
+        let radius = rect.width / 2
+        
+        path.addArc(
+            center: center,
+            radius: radius,
+            startAngle: .degrees(startAngle),
+            endAngle: .degrees(endAngle),
+            clockwise: false
+        )
+        
+        return path
     }
 }

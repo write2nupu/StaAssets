@@ -1,8 +1,8 @@
 
 import Foundation
 
-struct ChartData: Identifiable {
+struct PieSlice: Identifiable {
     let id = UUID()
-    let day: String
-    let amount: Double
+    let category: String
+    let value: Double
 }

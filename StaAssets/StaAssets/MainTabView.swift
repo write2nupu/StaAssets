@@ -25,8 +25,8 @@ struct MainTabView: View {
                     Text("Profile")
                 }
         }
-        .accentColor(.white)
-        .background(Color.black)
+        .accentColor(.blue)
+        .background(.primary)
     }
 }
 
