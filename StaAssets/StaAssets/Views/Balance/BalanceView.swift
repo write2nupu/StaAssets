@@ -138,22 +138,36 @@ extension BalanceView {
                     
                     let gradient = gradientColors(for: item.category)
                     
-                    HStack {
+                    HStack(spacing: 12) {
                         
-                        Circle()
-                            .fill(
+                        // 🧩 Icon (colored)
+                        Image(systemName: categoryIcon(item.category))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(
                                 LinearGradient(
                                     colors: gradient,
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .frame(width: 10, height: 10)
+                            .frame(width: 28, height: 28)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: gradient.map { $0.opacity(0.15) },
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                            )
                         
+                        // 🏷 Category
                         Text(item.category)
                         
                         Spacer()
                         
+                        // 💰 Amount
                         Text("₹\(Int(item.amount))")
                             .font(.subheadline.bold())
                     }
