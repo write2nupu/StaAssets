@@ -251,6 +251,7 @@ extension HomeView {
                     ForEach(filtered) { transaction in
                         
                         expenseCard(transaction: transaction)
+                            .padding(.horizontal, 6)
                             .contextMenu {
                                 
                                 Button(role: .destructive) {

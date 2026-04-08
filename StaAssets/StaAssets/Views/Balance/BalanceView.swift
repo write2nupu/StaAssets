@@ -247,7 +247,7 @@ extension BalanceView {
     
     var segments: [Double] {
         
-        guard totalExpense > 0 else { return [] }
+        guard totalExpense > 0 else { return [1] }
         
         let top = categoryTotals.prefix(3).map { $0.amount }
         let others = categoryTotals.dropFirst(3).reduce(0) { $0 + $1.amount }
@@ -345,6 +345,9 @@ extension BalanceView {
 
 struct DynamicGaugeSegments: View {
     
+    var isEmpty: Bool {
+        values.count == 1 && values.first == 1
+    }
     let values: [Double]
     let categories: [String]
     
@@ -361,6 +364,21 @@ struct DynamicGaugeSegments: View {
         let angles = values.map { $0 * usableAngle }
         
         ZStack {
+            
+            if isEmpty {
+                
+                ArcShape(
+                    startAngle: startAngle,
+                    endAngle: startAngle + totalAngle
+                )
+                .stroke(
+                    Color.primary.opacity(0.1), // 👈 soft neutral color
+                    style: StrokeStyle(
+                        lineWidth: 28,
+                        lineCap: .round
+                    )
+                )
+            }
             
             ForEach(angles.indices, id: \.self) { i in
                 
@@ -401,7 +419,7 @@ struct DynamicGaugeSegments: View {
             setupAnimation()
         }
     }
-    
+     
     // MARK: - Smooth Sequential Animation
     
     func setupAnimation() {
