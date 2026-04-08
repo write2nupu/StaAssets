@@ -61,12 +61,12 @@ struct HomeView: View {
         .alert("Delete Transaction?", isPresented: $showDeleteAlert) {
             
             Button("Delete", role: .destructive) {
-                transactionToDelete = nil
                 if let transactionToDelete {
                     withAnimation {
                         vm.deleteTransaction(transactionToDelete)
                     }
                 }
+                self.transactionToDelete = nil
             }
             
             Button("Cancel", role: .cancel) {}
