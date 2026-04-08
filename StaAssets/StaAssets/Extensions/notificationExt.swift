@@ -50,7 +50,7 @@ struct NotificationPopoverView: View {
                 }
             }
         }
-        .padding(12) // 👈 tighter padding
-        .frame(width: 200) // 👈 smaller width (IMPORTANT)
+        .padding(12)
+        .frame(width: 200)
     }
 }

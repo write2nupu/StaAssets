@@ -75,3 +75,4 @@ func gradientColors(for category: String) -> [Color] {
         return [.gray, .black]
     }
 }
+

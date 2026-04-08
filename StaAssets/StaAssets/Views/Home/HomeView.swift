@@ -202,7 +202,7 @@ extension HomeView {
                 
                 // 🔹 Period Toggle
                 Picker("", selection: $selectedPeriod) {
-                    Text("Today").tag(0)
+                    Text("Day").tag(0)
                     Text("Week").tag(1)
                     Text("Month").tag(2)
                 }

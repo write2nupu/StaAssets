@@ -14,14 +14,11 @@ struct AppHeaderView: View {
             
             HStack(spacing: 10) {
                 
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(.secondarySystemBackground))
+                Image("appLogo")
+                    .resizable()
+                    .scaledToFill()
                     .frame(width: 35, height: 35)
-                    .overlay(
-                        Text("P")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                 
                 Text("Cashify")
                     .font(.headline)
