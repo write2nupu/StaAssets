@@ -1,12 +1,11 @@
-
 import SwiftUI
 
 struct AddTransactionView: View {
     
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismiss) private var dismiss
     
     @State private var amount = ""
-    @State private var category = "Food"
+    @State private var category = Category.food.rawValue
     @State private var note = ""
     @State private var isIncome = false
     
@@ -27,13 +26,17 @@ struct AddTransactionView: View {
                 // MARK: - Category
                 Section("Category") {
                     
+                    let categories = Category.allCases.map { $0.rawValue }
+                    
                     Picker("Select Category", selection: $category) {
-                        ForEach(allCategories, id: \.self) { item in
+                        ForEach(categories, id: \.self) { item in
+                            
+                            let icon = Category(rawValue: item)?.icon ?? "square.grid.2x2"
                             
                             Label {
                                 Text(item)
                             } icon: {
-                                Image(systemName: categoryIcon(item))
+                                Image(systemName: icon)
                             }
                             .tag(item)
                         }

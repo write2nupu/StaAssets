@@ -1,4 +1,3 @@
-
 import SwiftUI
 
 struct MainTabView: View {
@@ -25,11 +24,5 @@ struct MainTabView: View {
                     Text("Profile")
                 }
         }
-        .accentColor(.blue)
-        .background(.primary)
     }
-}
-
-#Preview {
-    MainTabView()
 }

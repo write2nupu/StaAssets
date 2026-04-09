@@ -1,4 +1,3 @@
-
 import SwiftUI
 import Charts
 
@@ -138,7 +137,7 @@ extension BalanceView {
                 
                 ForEach(categoryTotals, id: \.category) { item in
                     
-                    let gradient = gradientColors(for: item.category)
+                    let gradient = Category(rawValue: item.category)?.gradient ?? [.gray, .black]
                     
                     NavigationLink {
                         CategoryDetailView(category: item.category)
@@ -146,8 +145,8 @@ extension BalanceView {
                         
                         HStack(spacing: 12) {
                             
-                            Image(systemName: categoryIcon(item.category))
-                                .font(.system(size: 14, weight: .semibold)) // smaller
+                            Image(systemName: Category(rawValue: item.category)?.icon ?? "square.grid.2x2")
+                                .font(.system(size: 14, weight: .semibold))
                                 .foregroundStyle(
                                     LinearGradient(
                                         colors: gradient,
@@ -155,7 +154,7 @@ extension BalanceView {
                                         endPoint: .bottomTrailing
                                     )
                                 )
-                                .frame(width: 32, height: 32) // tighter
+                                .frame(width: 32, height: 32)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
                                         .fill(
@@ -181,7 +180,7 @@ extension BalanceView {
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(.secondary)
                         }
-                        .padding(.vertical, 12) // 👈 KEY FIX (was too large)
+                        .padding(.vertical, 12)
                         .padding(.horizontal, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 16)
@@ -196,8 +195,8 @@ extension BalanceView {
 
 extension BalanceView {
     
-    var expenseTransactions: [Transaction] {
-        vm.transactions.filter { !$0.isIncome }
+    var expenseOnlyTransactions: [Transaction] {
+        filteredTransactions.filter { !$0.isIncome }
     }
     
     var filteredTransactions: [Transaction] {
@@ -222,13 +221,13 @@ extension BalanceView {
     
     var categoryTotals: [(category: String, amount: Double)] {
         
-        let grouped = Dictionary(grouping: filteredTransactions) { $0.category }
+        let grouped = Dictionary(grouping: expenseOnlyTransactions) { $0.category }
         
-        return allCategories.map { category in
+        return Category.allCases.map { category in
             
-            let total = grouped[category]?.reduce(0) { $0 + $1.amount } ?? 0
+            let total = grouped[category.rawValue]?.reduce(0) { $0 + $1.amount } ?? 0
             
-            return (category, total)
+            return (category.rawValue, total)
         }
         .sorted { $0.amount > $1.amount }
     }
@@ -242,7 +241,7 @@ extension BalanceView {
     }
     
     var totalExpense: Double {
-        categoryTotals.reduce(0) { $0 + $1.amount }
+        expenseOnlyTransactions.reduce(0) { $0 + $1.amount }
     }
     
     var segments: [Double] {
@@ -363,16 +362,15 @@ struct DynamicGaugeSegments: View {
         let usableAngle = totalAngle - totalGap
         let angles = values.map { $0 * usableAngle }
         
-        ZStack {
+        return ZStack {
             
             if isEmpty {
-                
                 ArcShape(
                     startAngle: startAngle,
                     endAngle: startAngle + totalAngle
                 )
                 .stroke(
-                    Color.primary.opacity(0.1), // 👈 soft neutral color
+                    Color.primary.opacity(0.1),
                     style: StrokeStyle(
                         lineWidth: 28,
                         lineCap: .round
@@ -381,43 +379,45 @@ struct DynamicGaugeSegments: View {
             }
             
             ForEach(angles.indices, id: \.self) { i in
-                
-                let segmentStart = angles.prefix(i).reduce(0, +) + Double(i) * gap
-                let segmentEnd = segmentStart + angles[i]
-                
-                let progress = progresses.indices.contains(i) ? progresses[i] : 0
-                
-                let animatedEnd = segmentStart + (segmentEnd - segmentStart) * progress
-                
-                let category = categories.indices.contains(i) ? categories[i] : "Others"
-                let gradient = gradientColors(for: category)
-                
-                ArcShape(
-                    startAngle: startAngle + segmentStart,
-                    endAngle: startAngle + animatedEnd
-                )
-                .stroke(
-                    LinearGradient(
-                        colors: gradient,
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    ),
-                    style: StrokeStyle(
-                        lineWidth: 28,
-                        lineCap: .round,
-                        lineJoin: .round
-                    )
-                )
+                segmentView(index: i, angles: angles)
             }
         }
         .onAppear {
-            DispatchQueue.main.async {
-                setupAnimation()
-            }
+            setupAnimation()
         }
         .onChange(of: values) { _, _ in
             setupAnimation()
         }
+    }
+    
+    @ViewBuilder
+    func segmentView(index i: Int, angles: [Double]) -> some View {
+        
+        let segmentStart = angles.prefix(i).reduce(0, +) + Double(i) * gap
+        let segmentEnd = segmentStart + angles[i]
+        
+        let progress = progresses.indices.contains(i) ? progresses[i] : 0
+        let animatedEnd = segmentStart + (segmentEnd - segmentStart) * progress
+        
+        let category = categories.indices.contains(i) ? categories[i] : "Others"
+        let gradient = Category(rawValue: category)?.gradient ?? [.gray, .black]
+        
+        ArcShape(
+            startAngle: startAngle + segmentStart,
+            endAngle: startAngle + animatedEnd
+        )
+        .stroke(
+            LinearGradient(
+                colors: gradient,
+                startPoint: .leading,
+                endPoint: .trailing
+            ),
+            style: StrokeStyle(
+                lineWidth: 28,
+                lineCap: .round,
+                lineJoin: .round
+            )
+        )
     }
      
     // MARK: - Smooth Sequential Animation

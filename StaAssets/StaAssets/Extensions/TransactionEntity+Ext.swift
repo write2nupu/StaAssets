@@ -1,4 +1,3 @@
-
 import Foundation
 
 extension TransactionEntity {
@@ -12,5 +11,14 @@ extension TransactionEntity {
             note: self.note ?? "",
             isIncome: self.isIncome
         )
+    }
+    
+    func update(from model: Transaction) {
+        self.id = model.id
+        self.amount = model.amount
+        self.category = model.category
+        self.date = model.date
+        self.note = model.note
+        self.isIncome = model.isIncome
     }
 }

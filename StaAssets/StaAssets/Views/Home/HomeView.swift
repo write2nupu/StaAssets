@@ -1,6 +1,4 @@
-
 import SwiftUI
-import Combine
 
 struct HomeView: View {
     
@@ -124,7 +122,6 @@ extension HomeView {
                 endPoint: .bottomTrailing
             )
             
-            // 🔥 adaptive overlay
             RoundedRectangle(cornerRadius: 25)
                 .fill(Color.primary.opacity(0.15))
             
@@ -200,16 +197,15 @@ extension HomeView {
                     }
                 }
                 
-                // 🔹 Period Toggle
                 Picker("", selection: $selectedPeriod) {
                     Text("Day").tag(0)
                     Text("Week").tag(1)
                     Text("Month").tag(2)
                 }
                 .pickerStyle(.segmented)
-                .onChange(of: selectedPeriod) { _ , _ in
+                .onChange(of: selectedPeriod) { _, _ in
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        currentDate = Date() // reset to current
+                        currentDate = Date()
                     }
                 }
             }
@@ -258,7 +254,13 @@ extension HomeView {
                                     transactionToDelete = transaction
                                     showDeleteAlert = true
                                 } label: {
-                                    Label("Delete", systemImage: "trash")
+                                    Label {
+                                        Text("Delete")
+                                    } icon: {
+                                        Image(systemName: "trash")
+                                            .symbolRenderingMode(.monochrome)
+                                            .foregroundStyle(.red)
+                                    }
                                 }
                             }
                     }
@@ -266,6 +268,7 @@ extension HomeView {
             }
         }
     }
+    
     func changeDate(by value: Int) {
         
         let calendar = Calendar.current
@@ -281,6 +284,7 @@ extension HomeView {
             }
         }
     }
+    
     var formattedDate: String {
         
         let formatter = DateFormatter()
@@ -305,16 +309,19 @@ extension HomeView {
             return formatter.string(from: currentDate)
         }
     }
+    
     func expenseCard(transaction: Transaction) -> some View {
         
-        HStack {
+        let gradient = Category(rawValue: transaction.category)?.gradient ?? [.gray, .black]
+        
+        return HStack {
             
             ZStack {
                 Circle()
                     .fill(Color.primary.opacity(0.1))
                     .frame(width: 40, height: 40)
                 
-                Image(systemName: categoryIcon(transaction.category))
+                Image(systemName: Category(rawValue: transaction.category)?.icon ?? "square.grid.2x2")
                     .font(.system(size: 16, weight: .semibold))
             }
             
@@ -340,20 +347,18 @@ extension HomeView {
         .background(
             ZStack {
                 
-                // Base card (adaptive)
-                RoundedRectangle(cornerRadius:  20)
+                RoundedRectangle(cornerRadius: 20)
                     .fill(Color(.secondarySystemBackground))
                 
-                // Gradient (left fade only)
                 LinearGradient(
-                    colors: gradientColors(for: transaction.category),
+                    colors: gradient,
                     startPoint: .leading,
                     endPoint: .trailing
                 )
-                .opacity(0.25) // softer
+                .opacity(0.25)
                 .mask(
                     LinearGradient(
-                        colors: [.clear, .black, .clear], // FIXED
+                        colors: [.clear, .black, .clear],
                         startPoint: .leading,
                         endPoint: .trailing
                     )

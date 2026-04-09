@@ -1,4 +1,3 @@
-
 import SwiftUI
 
 func notificationRow(_ text: String) -> some View {

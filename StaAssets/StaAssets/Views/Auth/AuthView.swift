@@ -44,6 +44,7 @@ struct AuthView: View {
                     
                     Spacer(minLength: selectedTab == 1 ? 10 : 40)
                     
+                    // MARK: - Header (ANIMATED)
                     VStack(spacing: 14) {
                         
                         Image("appLogo")
@@ -60,7 +61,9 @@ struct AuthView: View {
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                     }
+                    .animation(.spring(response: 0.4, dampingFraction: 0.85), value: selectedTab)
                     
+                    // MARK: - CARD
                     VStack(alignment: .leading, spacing: 16) {
                         
                         Text("Get started")
@@ -76,11 +79,13 @@ struct AuthView: View {
                         }
                         .pickerStyle(.segmented)
                         
+                        // MARK: - Fields (ANIMATED PROPERLY)
                         VStack(spacing: 14) {
                             
                             if selectedTab == 1 {
                                 inputField("Full Name", text: $fullName, error: fullNameError)
                                     .focused($focusedField, equals: .fullName)
+                                    .transition(fieldTransition)
                             }
                             
                             inputField("Email", text: $email, error: emailError)
@@ -92,9 +97,12 @@ struct AuthView: View {
                             if selectedTab == 1 {
                                 passwordField("Confirm Password", text: $confirmPassword, error: confirmPasswordError)
                                     .focused($focusedField, equals: .confirmPassword)
+                                    .transition(fieldTransition)
                             }
                         }
+                        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: selectedTab)
                         
+                        // MARK: - Forgot Password
                         if selectedTab == 0 {
                             HStack {
                                 Spacer()
@@ -104,7 +112,9 @@ struct AuthView: View {
                             }
                         }
                         
+                        // MARK: - Button
                         Button {
+                            
                             dismissKeyboard()
                             
                             if validateAll() {
@@ -137,6 +147,7 @@ struct AuthView: View {
                     .padding()
                     .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 24))
+                    .animation(.spring(response: 0.35, dampingFraction: 0.85), value: selectedTab)
                     
                     Spacer()
                 }
@@ -150,6 +161,13 @@ struct AuthView: View {
 // MARK: - Validation Logic
 
 extension AuthView {
+    
+    var fieldTransition: AnyTransition {
+        .asymmetric(
+            insertion: .opacity.combined(with: .offset(y: -10)),
+            removal: .opacity.combined(with: .offset(y: 10))
+        )
+    }
     
     var isFormValid: Bool {
         if selectedTab == 0 {

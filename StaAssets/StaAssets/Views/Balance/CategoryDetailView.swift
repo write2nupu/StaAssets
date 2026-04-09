@@ -1,4 +1,3 @@
-
 import SwiftUI
 import Charts
 
@@ -68,7 +67,7 @@ struct CategoryDetailView: View {
                 }
             }
         }
-        .onChange(of: selectedPeriod) { _ , _ in
+        .onChange(of: selectedPeriod) { _, _ in
             animateChart = false
             
             withAnimation(.easeOut(duration: 0.8)) {
@@ -92,7 +91,6 @@ extension CategoryDetailView {
         let calendar = Calendar.current
         
         if selectedPeriod == 0 {
-            // WEEKLY (same as before)
             
             return (1...7).map { index in
                 
@@ -108,7 +106,6 @@ extension CategoryDetailView {
             }
             
         } else {
-            // MONTHLY → group by week of month
             
             let grouped = Dictionary(grouping: filteredTransactions) {
                 calendar.component(.weekOfMonth, from: $0.date)
@@ -155,6 +152,8 @@ extension CategoryDetailView {
     @ChartContentBuilder
     func chartContent(for item: ChartData) -> some ChartContent {
         
+        let gradient = Category(rawValue: category)?.gradient ?? [.gray, .black]
+        
         AreaMark(
             x: .value("Time", item.label),
             y: .value("Amount", animateChart ? item.value : 0)
@@ -162,7 +161,7 @@ extension CategoryDetailView {
         .interpolationMethod(.catmullRom)
         .foregroundStyle(
             LinearGradient(
-                colors: gradientColors(for: category).map { $0.opacity(0.3) },
+                colors: gradient.map { $0.opacity(0.3) },
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -175,7 +174,7 @@ extension CategoryDetailView {
         .interpolationMethod(.catmullRom)
         .foregroundStyle(
             LinearGradient(
-                colors: gradientColors(for: category),
+                colors: gradient,
                 startPoint: .leading,
                 endPoint: .trailing
             )

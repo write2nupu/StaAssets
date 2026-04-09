@@ -1,78 +1,56 @@
-
-import Foundation
 import SwiftUI
 
-let allCategories = [
-    "Savings",
-    "Debts",
-    "Subscriptions",
-    "Utilities",
-    "Housing",
-    "Transportation",
-    "Personal Care",
-    "Gifts",
-    "Insurance",
-    "Entertainment",
-    "Food",
-    "Travel",
-    "Shopping",
-    "Bills"
-]
-
-func categoryIcon(_ category: String) -> String {
-    switch category {
-    case "Savings": return "banknote"
-    case "Debts": return "creditcard"
-    case "Subscriptions": return "repeat"
-    case "Utilities": return "bolt"
-    case "Housing": return "house"
-    case "Transportation": return "car"
-    case "Personal Care": return "heart.text.square"
-    case "Gifts": return "gift"
-    case "Insurance": return "shield"
-    case "Entertainment": return "gamecontroller"
-    case "Food": return "fork.knife"
-    case "Travel": return "airplane"
-    case "Shopping": return "bag"
-    case "Bills": return "doc.text"
-    default: return "square.grid.2x2"
+enum Category: String, CaseIterable, Codable {
+    case savings = "Savings"
+    case debts = "Debts"
+    case subscriptions = "Subscriptions"
+    case utilities = "Utilities"
+    case housing = "Housing"
+    case transportation = "Transportation"
+    case personalCare = "Personal Care"
+    case gifts = "Gifts"
+    case insurance = "Insurance"
+    case entertainment = "Entertainment"
+    case food = "Food"
+    case travel = "Travel"
+    case shopping = "Shopping"
+    case bills = "Bills"
+    
+    var icon: String {
+        switch self {
+        case .savings: return "banknote"
+        case .debts: return "creditcard"
+        case .subscriptions: return "repeat"
+        case .utilities: return "bolt"
+        case .housing: return "house"
+        case .transportation: return "car"
+        case .personalCare: return "heart.text.square"
+        case .gifts: return "gift"
+        case .insurance: return "shield"
+        case .entertainment: return "gamecontroller"
+        case .food: return "fork.knife"
+        case .travel: return "airplane"
+        case .shopping: return "bag"
+        case .bills: return "doc.text"
+        }
+    }
+    
+    var gradient: [Color] {
+        switch self {
+        case .savings: return [.green, .mint]
+        case .debts: return [.red, .pink]
+        case .subscriptions: return [.purple, .indigo]
+        case .utilities: return [.yellow, .orange]
+        case .housing: return [.brown, .orange]
+        case .transportation: return [.blue, .cyan]
+        case .personalCare: return [.pink, .red]
+        case .gifts: return [.purple, .pink]
+        case .insurance: return [.gray, .blue]
+        case .entertainment: return [.indigo, .purple]
+        case .food: return [.orange, .red]
+        case .travel: return [.teal, .blue]
+        case .shopping: return [.pink, .purple]
+        case .bills: return [.teal, .green]
+        }
     }
 }
-
-func gradientColors(for category: String) -> [Color] {
-    switch category {
-
-    case "Savings":
-        return [.green, .mint]
-    case "Debts":
-        return [.red, .pink]
-    case "Subscriptions":
-        return [.purple, .indigo]
-    case "Utilities":
-        return [.yellow, .orange]
-    case "Housing":
-        return [.brown, .orange]
-    case "Transportation":
-        return [.blue, .cyan]
-    case "Personal Care":
-        return [.pink, .red]
-    case "Gifts":
-        return [.purple, .pink]
-    case "Insurance":
-        return [.gray, .blue]
-    case "Entertainment":
-        return [.indigo, .purple]
-    case "Food":
-        return [.orange, .red]
-    case "Travel":
-        return [.teal, .blue]
-    case "Shopping":
-        return [.pink, .purple]
-    case "Bills":
-        return [.teal, .green]
-        
-    default:
-        return [.gray, .black]
-    }
-}
-

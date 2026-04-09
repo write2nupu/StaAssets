@@ -1,11 +1,10 @@
-
 import SwiftUI
 import CoreData
 
 @main
 struct StaAssetsApp: App {
     
-    let persistenceController = StorageManager.shared
+    let persistenceController = PersistenceController.shared
     
     var body: some Scene {
         WindowGroup {

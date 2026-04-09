@@ -1,24 +1,26 @@
-
 import Foundation
 import CoreData
-import Combine
 import SwiftUI
+import Combine
 
+@MainActor
 final class TransactionViewModel: ObservableObject {
     
-    @Published var transactions: [Transaction] = []
+    @Published private(set) var transactions: [Transaction] = []
+    @Published var alertMessage: String = ""
+    @Published var showAlert: Bool = false
+    @Published var notifications: [String] = []
+    
     var balance: Double {
         transactions.reduce(0) {
             $0 + ($1.isIncome ? $1.amount : -$1.amount)
         }
     }
-    @Published var alertMessage: String = ""
-    @Published var showAlert: Bool = false
-    @Published var notifications: [String] = []
     
-    private let context = StorageManager.shared.context
+    private let context: NSManagedObjectContext
     
-    init() {
+    init(context: NSManagedObjectContext? = nil) {
+        self.context = context ?? PersistenceController.shared.context
         fetchTransactions()
     }
     
@@ -28,12 +30,12 @@ final class TransactionViewModel: ObservableObject {
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \TransactionEntity.date, ascending: false)
         ]
-
+        
         do {
             let result = try context.fetch(request)
             self.transactions = result.map { $0.toModel() }
         } catch {
-            print("Fetch failed")
+            print("❌ Fetch failed:", error.localizedDescription)
         }
     }
     
@@ -52,23 +54,24 @@ final class TransactionViewModel: ObservableObject {
         }
         
         let newTransaction = TransactionEntity(context: context)
-        newTransaction.id = UUID()
-        newTransaction.amount = amount
-        newTransaction.category = category
-        newTransaction.note = note
-        newTransaction.date = Date()
-        newTransaction.isIncome = isIncome
+        newTransaction.update(
+            from: Transaction(
+                amount: amount,
+                category: category,
+                date: Date(),
+                note: note,
+                isIncome: isIncome
+            )
+        )
         
-        let message: String
-        if isIncome {
-            message = "₹\(Int(amount)) credited"
-        } else {
-            message = "₹\(Int(amount)) debited"
-        }
+        let message = isIncome
+        ? "₹\(Int(amount)) credited"
+        : "₹\(Int(amount)) debited"
         
         alertMessage = message
         notifications.insert(message, at: 0)
         showAlert = true
+        
         save()
     }
     
@@ -84,18 +87,14 @@ final class TransactionViewModel: ObservableObject {
                 save()
             }
         } catch {
-            print("Delete failed")
+            print("Delete failed:", error.localizedDescription)
         }
     }
     
     // MARK: - Save
     private func save() {
-        do {
-            try context.save()
-            fetchTransactions()
-        } catch {
-            print("Save failed")
-        }
+        PersistenceController.shared.save()
+        fetchTransactions()
     }
 }
 
